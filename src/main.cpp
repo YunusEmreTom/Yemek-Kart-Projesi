@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <SD.h>
+#include <virtuabotixRTC.h>
 
 #define RST_PIN         9           // Configurable, see typical pin layout above
 #define SS_PIN          10          // Configurable, see typical pin layout above
@@ -12,6 +13,7 @@
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance
 File myFile;
+virtuabotixRTC RTC_DS1302(6, 7, 8);
 
 void Gec(){
   digitalWrite(YeLed,HIGH);
@@ -298,6 +300,12 @@ int sd_read(String numara){
   return deger; // -1 değilse değer içerisinde vardır.
 }
 
+String zaman(){
+  RTC_DS1302.updateTime();
+  String NowTime = "Tarih: " + String(RTC_DS1302.dayofmonth) + "/" + String(RTC_DS1302.month);
+  return NowTime;
+}
+
 //*****************************************************************************************//
 void setup() {
   Serial.begin(9600);
@@ -329,6 +337,7 @@ void loop() {
     }
     if(alinandeger==1){
         String okunankartID = rf_read();
+        
         int durum = sd_read(okunankartID);
         if (durum == -1){
           Gec();
@@ -342,9 +351,11 @@ void loop() {
     
   } else {
     
-    String okunankartID = rf_read();
+    String okunankartID = zaman()+rf_read();
+    String kartinaydegeri = okunankartID.substring(okunankartID.length() - 2);
+
     int durum = sd_read(okunankartID);
-    if (durum == -1){
+    if (durum == -1 && kartinaydegeri == String(RTC_DS1302.month)){
       Gec();
       sd_write(okunankartID);
     }
