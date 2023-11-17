@@ -1,5 +1,6 @@
-# Yemek-Kart-Projesi
+   # Yemek-Kart-Projesi
 Yemek kartı projesinde kişilerin yemek yeme hakları boyunca yemek almaları sağlanmaktadır. Proje  ilk okul için tasarlanmıştır.
+![devre](https://github.com/YunusEmreTom/Yemek-Kart-Projesi/assets/78315933/a9450d17-234f-473b-a7dc-35d7af9b144d)
 
 Yemek kartı projesinde kullanılan malzemeler:
 1. Arduino 
