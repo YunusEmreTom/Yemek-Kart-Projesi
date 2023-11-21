@@ -3,10 +3,7 @@
 
 RFID rfid(10,5);    //D10--读卡器MOSI引脚、D5--读卡器RST引脚
 
-#define KiLed           5
-#define YeLed           6
-#define Buzzer          7
-
+//4字节卡序列号，第5字节为校验字节
 unsigned char serNum[5];
 //写卡数据
 unsigned char writeDate[16] ={'G', 'e', 'e', 'k', '-', 'W', 'o', 'r', 'k', 'S', 'h', 'o', 'p', 0, 0, 0};
@@ -21,14 +18,24 @@ unsigned char sectorNewKeyA[16][16] = {
         {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xff,0x07,0x80,0x69, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
         {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xff,0x07,0x80,0x69, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},};
 
+void setup()
+{
+  Serial.begin(9600);
+  SPI.begin();
+  rfid.init();
+}
 
-String RF_Write(){
+void loop()
+{
   unsigned char i,tmp;
   unsigned char status;
   unsigned char str[MAX_LEN];
   unsigned char RC_size;
-  unsigned char blockAddr;        
-  
+  unsigned char blockAddr;        //选择操作的块地址0～63
+
+  //找卡
+  rfid.isCard();
+  //读取卡序列号
   if (rfid.readCardSerial())
   {
     Serial.print("The card's number is  : ");
@@ -59,18 +66,8 @@ String RF_Write(){
       Serial.println("Write card OK!");
     }
   }
-}
 
-String RF_Read(){
-  unsigned char i,tmp;
-  unsigned char status;
-  unsigned char str[MAX_LEN];
-  unsigned char RC_size;
-  String KartID;
-
-  unsigned char blockAddr;        
-
-  rfid.selectTag(rfid.serNum);
+  //读卡
   blockAddr = 7;                //数据块7
   status = rfid.auth(PICC_AUTHENT1A, blockAddr, sectorNewKeyA[blockAddr/4], rfid.serNum);
   if (status == MI_OK)  //认证
@@ -81,65 +78,8 @@ String RF_Read(){
     {
       Serial.print("Read from the card ,the data is : ");
       Serial.println((char *)str);
-      KartID=(char *)str;
-
     }
   }
   
-  return KartID;
-}
-void Gec(){
-  digitalWrite(YeLed,HIGH);
-  digitalWrite(Buzzer,HIGH);
-  delay(300);
-  digitalWrite(YeLed,LOW);
-  digitalWrite(Buzzer,LOW);
-}
-void Dur(){
-  digitalWrite(KiLed,HIGH);
-  digitalWrite(Buzzer,HIGH);
-  delay(150);
-  digitalWrite(Buzzer,LOW);
-  delay(150);
-  digitalWrite(Buzzer,HIGH);
-  delay(150);
-  digitalWrite(Buzzer,LOW);
-  delay(150);
-  digitalWrite(Buzzer,HIGH);
-  delay(150);
-  digitalWrite(Buzzer,LOW);
-  digitalWrite(KiLed,LOW);
-}
-void setup()
-{
-  Serial.begin(9600);
-  SPI.begin();
-  rfid.init();
-  pinMode(YeLed,OUTPUT);
-  pinMode(KiLed,OUTPUT);
-  pinMode(Buzzer,OUTPUT);
-}
-
-void loop()
-{
-  rfid.isCard();
-  String newKartID = RF_Read();
-  String lastTwoDigits = newKartID.substring(13 - 2);
-  int lastTwoDigitsInt = lastTwoDigits.toInt();
-  if (lastTwoDigitsInt>0){
-    lastTwoDigitsInt--;
-    String newString = newKartID.substring(0, 13 - 2) + String(lastTwoDigitsInt);
-    for (int i = 0; i < newString.length() && i < sizeof(writeDate); i++) {
-      writeDate[i] = static_cast<unsigned char>(newString.charAt(i));
-    }
-    RF_Write();
-    Serial.println("geç");
-    Gec();
-    delay(500);
-  }
-  else{
-    Serial.println("dur");
-    Dur();
-  }
   rfid.halt();
 }
