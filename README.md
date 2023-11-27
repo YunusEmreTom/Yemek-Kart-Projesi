@@ -1,19 +1,43 @@
-   # Yemek-Kart-Projesi
-Yemek kartı projesinde kişilerin yemek yeme hakları boyunca yemek almaları sağlanmaktadır. Proje  ilk okul için tasarlanmıştır.
-![yemekkarti2_bb](https://github.com/YunusEmreTom/Yemek-Kart-Projesi/assets/78315933/61cf2e64-8009-4de1-baf1-c5d948f5c893)
+Bu tür bir sorun genellikle pin çakışması veya SPI (Serial Peripheral Interface) ile ilgili çakışmalardan kaynaklanabilir. SPI, hem SD kart modülü hem de RFID RC522 modülü tarafından kullanıldığından, bu iki modül arasında bir çakışma yaşanabilir. Bu tür bir çakışmayı önlemek için aşağıdaki adımları takip edebilirsiniz:
+
+      Pinleri Değiştirme:
+      SD kart modülünün SS (Slave Select) pinini değiştirin. Örneğin, SD.begin(4) olarak belirttiğinizde, 4. pinin kullanıldığını biliyoruz. Eğer mümkünse SD kart modülünün SS pinini değiştirerek çakışmayı önleyebilirsiniz.
+      RFID RC522'nin SS pinini, SD kart modülünün SS pininden farklı bir pin kullanacak şekilde değiştirin.
+
+    #define SS_PIN_SD 4  // SD kart modülünün SS pin
+    #define SS_PIN_RFID 10  // RFID modülünün SS pin
+    #define RST_PIN_RFID 9  // RFID modülünün reset pin
+    MFRC522 mfrc522(SS_PIN_RFID, RST_PIN_RFID); // RFID nesnesi oluştur
+       void setup() {
+          // ...
+          if (!SD.begin(SS_PIN_SD)) { // SD kartı başlat
+          Serial.println("SD kart başlatılamadı!");
+       return;
+     }
+     // ...   
+      }
+    
+
+cpp
 
 
-Yemek kartı projesinde kullanılan malzemeler:
-1. Arduino 
-2. RFID Modülü
-3. Buzzer
-4. Led (x2)
-5. Drenç (x3)
-   
-Bu proje okul için yapıldığından yemek hakkı 1 ay sonunda sıfırlanmaktadır. Ayrıca aynı kişinin o gün içerisinde en fazla 1 kez yemek yeme hakkı olduğundan bir daha yemek yiyememektedir.
 
-RFID ile ilk başta öğrenci kart yükleme sorumlusuna giderek kartına o ayın yemek yeme hakkını karta yazdırmaktadıe. Kartlarda ilk olarak kartların okul tarafından belirlenen şifrsi ondan sonra öğrenci numarası ve o ayın içersinde yemek yeme hakkı girilir. (ör. 12340211; 1234 okulun şifresi, 01 öğrencinin okul numarası, 11 yemek yeme hakkı) Sorumlu yemek yeme hakları sayısını değiştirerek kartları yenilemektedir. Yemek yeme hakkı olmayan yada kartı yanlış olan öğrenciler yemek yiyememektedirler. 
+    SPI Ayarlarını Değiştirme:
+        SPI ayarlarını kontrol etmek için SPI.beginTransaction() ve SPI.endTransaction() fonksiyonlarını kullanabilirsiniz. İlgili SPI ayarlarını başlatmadan önce beginTransaction() kullanın ve işlemin sonunda endTransaction() kullanın.
 
-Ledlerin amacı kişiyi bilgilendirme amaçlıdır. Kırmızı led yanarsa eğer kişi yemek yiyememekte, Yeşil led yanarsa kişi yemek yiyebilmektedir. 
+      cpp
+      
+      void setup() {
+        // ...
+        SPI.begin(); // SPI haberleşmesini başlat
+        SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0)); // SPI ayarlarını başlat
+        // ...
+      }
 
-Buzzerın amacı kişiyi sesli olarakta bilgilendirmektir. Bu sadece kişi değil ayrıca yemek sorumlularını da bilgilendirmek içindir. 
+      void loop() {
+        // ...
+        SPI.endTransaction(); // SPI işlemini sonlandır
+        delay(2000); // Kartın sürekli okunmasını önlemek için kısa bir bekleme
+      }
+
+Bu adımları uyguladıktan sonra kodunuzun daha düzgün çalışması gerekmelidir. Unutmayın ki, kullanılan kütüphaneler ve pin ayarları projenin karmaşıklığına bağlı olarak farklılık gösterebilir. Bu nedenle önerilen değişikliklere rağmen sorun devam ediyorsa, daha fazla sorun giderme adımı atmanız gerekebilir.
