@@ -9,7 +9,6 @@
 #define RST_PIN 7 /* Reset Pin */
 
 
-
 File myFile;
 /* Create an instance of MFRC522 */
 MFRC522 mfrc522(SS_PIN, RST_PIN);
@@ -21,7 +20,12 @@ MFRC522::MIFARE_Key key;
 int blockNum = 2;
 /* Create an array of 16 Bytes and fill it with data */
 /* This is the actual data which is going to be written into the card */
-byte blockData[16] = { "00000021129-Fet-" };
+byte blockData[16] = { "00000020100-Fet-" };
+
+int ay = 01;
+int gun = 01;
+
+
 
 /* Create another array to read data from Block */
 /* Legthn of buffer should be 2 Bytes more than the size of Block (16 Bytes) */
@@ -29,6 +33,9 @@ byte bufferLen = 18;
 byte readBlockData[18];
 
 MFRC522::StatusCode status;
+
+
+
 
 void setup() {
   /* Initialize serial communications with the PC */
@@ -96,6 +103,10 @@ void loop() {
   Serial.println("");
   byte originalValue = readBlockData[10];
   byte originalValueY = readBlockData[9];
+  String numara = "";
+  for(int i = 0; i<7; i++){
+    numara += (char)(readBlockData[i]);
+  }
   //byte updatedValue = (originalValue > 0) ? originalValue - 1 : 0;
   Serial.println(originalValue);
   byte updatedValue;
@@ -104,7 +115,7 @@ void loop() {
     updatedValue = originalValue - 1;
     updatedValueY = originalValueY;
     Serial.print("geçiş yapılabilir");
-    WriteDataSD();
+    WriteDataSD(numara);
   } else {
     if (originalValueY > 48) {
       updatedValueY = originalValueY - 1;
@@ -135,13 +146,14 @@ void loop() {
   Serial.print("\n");
 }
 
-void WriteDataSD(){
+void WriteDataSD(String a){
   digitalWrite(SS_PIN,HIGH);
   digitalWrite(4,LOW);
   myFile = SD.open("test.txt", FILE_WRITE);
    if (myFile) {
     Serial.print("Writing to test.txt...");
-    myFile.println("giriş tamamlandı");
+    
+    myFile.println("giriş tamamlandı "+a);
     // close the file:
     myFile.close();
     Serial.println("done.");
